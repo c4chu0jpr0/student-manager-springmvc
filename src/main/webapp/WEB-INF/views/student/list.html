@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>List student</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+</head>
+<body>
+<h1>Information student</h1>
+<p><a href="/students/create">Create new student</a></p>
+<form>
+    Search by name:
+    <input id="nameSearch" type="text">
+    <input type="button" value="search" onclick="search()">
+</form>
+<br>
+<table border="1">
+    <tr>
+        <th>name</th>
+        <th>address</th>
+        <th>Classes</th>
+        <th>img</th>
+        <th>Edit</th>
+    </tr>
+    <tbody id="listStudent">
+    <th:block th:each="s: ${list}">
+        <tr>
+            <td th:text="${s.getName()}"></td>
+            <td th:text="${s.getAddress()}"></td>
+            <td th:text="${s.classes.name}"></td>
+            <td><img th:src="@{'/i/'+ ${s.getImg()}}" width="100"/></td>
+            <td><a th:href="@{'/students/edit/'+${s.getId()}}">Edit</a>|
+                <a th:href="${s.getId()}" class="deleteStudent">Delete</a>
+            </td>
+        </tr>
+    </th:block>
+    </tbody>
+</table>
+<div>
+    <a th:href="@{'/students'(page=${list.number - 1})}" th:if="${list.hasPrevious()}">Previous</a>
+    <span th:text="${list.number + 1}"></span>/<span th:text="${list.totalPages}"></span>
+    <a th:href="@{'/students'(page=${list.number + 1})}" th:if="${list.hasNext()}">Next</a>
+</div>
+</body>
+</html>
+<script>
+    $(document).ready(function () {
+        $('.deleteStudent').click(function (event) {
+            let a = $(this);
+            let idStudent= a.attr("href");
+
+            $.ajax({
+                type:"DELETE",
+                url:"/students/"+idStudent,
+                success: function (data) {
+                    a.parent().parent().remove();
+                }
+            });
+            event.preventDefault();
+        });
+    });
+
+    function search() {
+        let name = $('#nameSearch').val();
+        let urlSearchParams = "/students/search/"+name;
+        $.ajax({
+            type: "GET",
+            url: urlSearchParams,
+            success: showListStudent(urlSearchParams)
+        })
+        event.preventDefault;
+    }
+    function showListStudent(url) {
+        $.ajax({
+            type: "GET",
+            url: url,
+            success: function (dssv) {
+                let content = "";
+                for (let i = 0; i < dssv.length; i++) {
+                    content += `<tr><td>${dssv[i].name}</td>
+                                    <td>${dssv[i].address}</td>
+                                    <td>${dssv[i].classes.name}</td>
+                                    <td><img src="/i/${dssv[i].img}" width="100"/></td>
+                                    <td><a href="/students/edit/${dssv[i].id}}">Edit</a>|
+                                        <a th:href="${dssv[i].id}" class="deleteStudent">Delete</a></td>
+                                    </tr>`
+                }
+                $('#listStudent').html(content);
+            }
+        })
+    }
+</script>

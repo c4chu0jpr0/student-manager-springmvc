@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Class</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+</head>
+<body>
+<h1>Information Class</h1>
+<form id="addClass">
+    <input type="text" id="className">
+    <input type="submit" value="Add" onclick="addClass()">
+</form>
+<h1>Provinces</h1>
+<table border="1" id="classList">
+    <tr>
+        <th>Name</th>
+        <th>Edit</th>
+        <th>Delete</th>
+    </tr>
+    <tbody id="listClasses">
+    <th:block th:each="c : ${classes}">
+        <tr>
+            <td th:text="${c.name}"></td>
+            <td><a th:href="@{'/classes/edit/'+ ${c.getId()}}">edit</a></td>
+            <td><a th:href="${c.getId()}" class="deleteClass">Xóa</a></td>
+        </tr>
+    </th:block>
+    </tbody>
+</table>
+</body>
+</html>
+
+<script>
+    function addClass(){
+        let className= $('#className').val();
+        let newName= {name: className };
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "POST",
+            data: JSON.stringify(newName),
+            url: "/classes/",
+            success: showListClass
+        })
+        event.preventDefault();
+    }
+    function showListClass(){
+        $.ajax({
+            type: "GET", url: "/classes", success: function (dshv) {
+                let content = "";
+                for (let i = 0; i < dshv.length; i++) {
+                    content += `<tr><td>${dshv[i].name}</td><td><a href="@{'/classes/edit/'+ ${dshv[i].id}}">Edit</a></td><td><a href="${dshv[i].id}"class="deleteClass">Xóa</a></td></tr>`
+                }
+                $('#listClasses').html(content);
+            }
+        })
+    }
+
+
+    $(document).ready(function () {
+        $('.deleteClass').click(function (event) {
+            let a = $(this);
+            let idClass = a.attr("href");
+            $.ajax({
+                type: "DELETE",
+                url: "/classes/" + idClass,
+                success: function (data) {
+                    a.parent().parent().remove();
+                }
+            });
+            event.preventDefault();
+        });
+    });
+
+</script>
